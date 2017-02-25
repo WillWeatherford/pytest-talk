@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Server module to to take HTTP requests."""
-import io
-import mimetypes
+
 import os
 import socket
 import sys
@@ -54,6 +53,13 @@ HTML_TEMPLATE = '''
 HTML_LI_TEMPLATE = '''
                    <li><a href="{full_path}">{short_path}</a></li>
                    '''
+
+PATHS = {
+    '/': ('Home page.', 'text/html'),
+    '/signup': ('Signup page.', 'text/html'),
+    '/login': ('Login page.', 'text/html'),
+    '/pictures/python_photo.jpg': (b'', 'image/jpeg'),
+}
 
 
 def server():
@@ -147,42 +153,10 @@ def parse_request(request):
 
 def resolve_uri(uri):
     """Return tuple of content and content type, or raise 404 error."""
-    print('Requested URI: ', uri)
-    uri = full_uri(uri)
-    print('URI after join: ', uri)
-
-    if os.path.isfile(uri):
-        content_type = mimetypes.guess_type(uri)[0]
-        body = read_file_bytes(uri)
-
-    elif os.path.isdir(uri):
-        content_type = TEXT_HTML
-        body = display(next(os.walk(uri)))
-        body = body.encode('utf-8')
-    else:
-        print(uri, 'is not a file or dir.')
-        raise ValueError(404)
-    return (body, content_type)
-
-
-def full_uri(uri):
-    """Take a unicode uri from webroot and return the absolute path."""
-    uri = os.path.join(*uri.split('/'))
-    uri = os.path.join(WEBROOT_PATH, uri)
-    return uri
-
-
-def web_uri(uri):
-    """Take a unicode uri and return the uri from webroot."""
-    return uri.replace(WEBROOT_PATH, '')
-
-
-def read_file_bytes(path):
-    """Return the data in bytestring format from the file at a give path."""
-    f = io.open(path, 'rb')
-    data = f.read()
-    f.close()
-    return data
+    try:
+        return PATHS[uri]
+    except KeyError:
+        raise ValueError('Invalid path; respond with HTTP 404.')
 
 
 # Response_ok doesn't parse body (might be bytes as for an image).
@@ -201,22 +175,6 @@ def response_error(err_code):
     return CRLF.join([' '.join([HTTP1_1, HTTP_CODES[err_code]]),
                      CONTENT_TYPE.format(TEXT_PLAIN),
                      CRLF])
-
-
-def display(threeple):
-    """Split dir threeple into components and return as HTML."""
-    cur_dir, dir_subdir, dir_files = threeple
-    cur_dir = web_uri(cur_dir)
-    dir_list = []
-    for i in dir_subdir + dir_files:
-        if i.startswith('._'):
-            continue
-        full_path = os.path.join(cur_dir, i)
-        html_li = HTML_LI_TEMPLATE.format(full_path=full_path, short_path=i)
-        dir_list.append(html_li)
-
-    return HTML_TEMPLATE.format(header=cur_dir,
-                                list_items=''.join(dir_list))
 
 
 if __name__ == '__main__':
