@@ -16,8 +16,7 @@ TEST_CASES = [
         '\r\n'
         '\r\n'
         'A message body that does nothing.',
-
-        '200'
+        200
     ),
     (
         'GET /'  # Missing Protocol
@@ -28,8 +27,7 @@ TEST_CASES = [
         '\r\n'
         '\r\n'
         'A message body that does nothing.',
-
-        '400'
+        400
     ),
     (
         'GET / HTTP/1.1'
@@ -40,8 +38,7 @@ TEST_CASES = [
         '\r\n'
         # Missing extra carriage return on blank line
         'A message body that does nothing.',
-
-        '400'
+        400
     ),
     (
         'GET HTTP/1.1'  # Missing URI
@@ -52,8 +49,7 @@ TEST_CASES = [
         '\r\n'
         '\r\n'
         'A message body that does nothing.',
-
-        '400'
+        400
     ),
     (
         'GET /page_does_not_exist HTTP/1.1'  # That is not a valid path
@@ -64,8 +60,7 @@ TEST_CASES = [
         '\r\n'
         '\r\n'
         'A message body that does nothing.',
-
-        '404'
+        404
     ),
     (
         'POST /login HTTP/1.1'  # Only GET method is allowed
@@ -76,8 +71,7 @@ TEST_CASES = [
         '\r\n'
         '\r\n'
         'A message body that does nothing.',
-
-        '405'
+        405
     ),
     (
         'GET /login HTTP/1.0'  # Server only supports HTTP/1.1
@@ -88,8 +82,7 @@ TEST_CASES = [
         '\r\n'
         '\r\n'
         'A message body that does nothing.',
-
-        '505'
+        505
     ),
 ]
 
