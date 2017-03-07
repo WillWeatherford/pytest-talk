@@ -20,22 +20,25 @@ METHODS = [
 ]
 
 URIS = [
-    ('/', 200, ),
+    ('/', 200),
+    ('/' + CRLF, 400),
     ('', 400),
 ]
 
 PROTOS = [
-    ('HTTP/1.1', 200),
-    ('HTTP/1.0', 505),
-    ('jhdo%#@#4939', 505),
+    ('HTTP/1.1' + CRLF, 200),
+    ('HTTP/1.1', 400),
+    ('HTTP/1.0'  + CRLF, 505),
+    ('jhdo%#@#4939'  + CRLF, 505),
     ('', 400),
 ]
 
 HEADERS = [
-    ('Host: example.com', 200),
-    ('Host: example.com', 200),
-    ('Host example.com', 400),
+    ('Host: example.com' + CRLF, 200),
+    ('Host: example.com' + CRLF, 200),
+    ('Host example.com'  + CRLF, 400),
     ('', 400),
+    # Add more/combos
 ]
 
 EMPTY_LINES = [
@@ -58,6 +61,15 @@ TEST_CASES = product(
 )
 
 
+STATUS_CODE_ORDER = [
+    400,
+    404,
+    405,
+    505,
+    200,
+]
+
+
 @pytest.fixture(params=TEST_CASES)
 def http_request(request):
     """Return a new HTTPRequest object with given combination of args.
@@ -65,22 +77,27 @@ def http_request(request):
     This function uses the `request` fixture provided by pytest.
     Note that this is some abnormal name-spacing.
     """
+    # request.param
     parts_codes_tuples = request.param
+
     possible_expected_codes = {tup[1] for tup in parts_codes_tuples}
-
-    if possible_expected_codes == {200, }:
-        expected_code = 200
-    if 400 in possible_expected_codes:
-        expected_code = 400
-    else:
-        expected_code = min(possible_expected_codes)
-
     parts = [tup[0] for tup in parts_codes_tuples]
-    top_row = ' '.join(parts[:3])
-    rest = CRLF.join(parts[3:])
-    http_request = CRLF.join((top_row, rest))
 
-    return {'http_request': http_request, 'expected_code': expected_code}
+    # Some logic to parse out the HTTP status code which will be expected
+    for code in STATUS_CODE_ORDER:
+        if code in possible_expected_codes:
+            expected_code = code
+            break
+
+    top_row = ' '.join(parts[:3])
+    rest = ''.join(parts[3:])
+    http_request = ''.join((top_row, rest))
+
+    return {
+        'http_request': http_request,
+        'expected_code': expected_code,
+        'parts': request.param,
+    }
 
 
 def test_http_request(http_request):
