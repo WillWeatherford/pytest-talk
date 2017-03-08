@@ -7,7 +7,7 @@ covered.
 """
 
 
-def test_200():
+def test_ok():
     """Test that server returns a 200 response when expected."""
     from client import client
     http_request = (
@@ -24,7 +24,7 @@ def test_200():
     assert response.split()[1] == '200'
 
 
-def test_400_1():
+def test_missing_protocol():
     """Test that server returns a 400 response when expected."""
     from client import client
     http_request = (
@@ -41,7 +41,7 @@ def test_400_1():
     assert response.split()[1] == '400'
 
 
-def test_400_2():
+def test_missing_crlf():
     """Test that server returns a 400 response when expected."""
     from client import client
     http_request = (
@@ -58,7 +58,7 @@ def test_400_2():
     assert response.split()[1] == '400'
 
 
-def test_400_3():
+def test_missing_uri():
     """Test that server returns a 400 response when expected."""
     from client import client
     http_request = (
@@ -75,7 +75,7 @@ def test_400_3():
     assert response.split()[1] == '400'
 
 
-def test_404():
+def test_page_not_found():
     """Test that server returns a 404 on a path that does not exist."""
     from client import client
     http_request = (
@@ -92,7 +92,7 @@ def test_404():
     assert response.split()[1] == '404'
 
 
-def test_405():
+def test_bad_method():
     """Test that server returns a 405 on a disallowed HTTP method."""
     from client import client
     http_request = (
@@ -109,7 +109,7 @@ def test_405():
     assert response.split()[1] == '405'
 
 
-def test_505():
+def test_bad_protocol():
     """Test that server returns a 505 on a disallowed protocol."""
     from client import client
     http_request = (

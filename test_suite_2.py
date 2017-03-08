@@ -1,6 +1,4 @@
-"""A better test suite for server.py using pytest's parameterize decorator.
-
-"""
+"""A better test suite for server.py using pytest's parameterize decorator."""
 
 # Using pytest.mark.parametrize decorator
 import pytest
@@ -92,4 +90,4 @@ def test_server(http_request, expected_code):
     """Test all cases in one parameterized function."""
     from client import client
     response = client(http_request)
-    assert response.split()[1] == str(expected_code)
+    assert int(response.split()[1]) == expected_code
