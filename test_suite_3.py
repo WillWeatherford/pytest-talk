@@ -25,8 +25,9 @@ METHODS = [
 
 URIS = [
     ('/', 200),
+    ('/login', 200),
+    ('/not-a-valid/path', 404),
     ('/' + CRLF, 400),
-    ('', 400),
 ]
 
 PROTOS = [
@@ -34,24 +35,20 @@ PROTOS = [
     ('HTTP/1.1', 400),
     ('HTTP/1.0'  + CRLF, 505),
     ('vhdo%#@#4939'  + CRLF, 505),
-    ('', 400),
 ]
 
 HEADERS = [
     ('Host: example.com' + CRLF, 200),
     ('Host: example.com' + CRLF + 'Content-Type: text/html' + CRLF, 200),
     ('Host example.com'  + CRLF, 400),
-    ('', 400),
 ]
 
 EMPTY_LINES = [
     (CRLF, 200),
     ('p40kdnad', 400),
-    ('', 400),
 ]
 
 BODIES = [
-    ('', 200),
     ('Some HTML', 200),
 ]
 
@@ -59,7 +56,7 @@ BODIES = [
 # Create iterator of every possible combination of HTTP request parts.
 # This ensures that our HTTP server is robust enough to correctly parse a huge
 # variety of incorrectly formed HTTP requests.
-
+# Each item will be a tuple of five tuples, each of length 2.
 TEST_CASES = itertools.product(
     METHODS, URIS, PROTOS,
     HEADERS,
@@ -98,16 +95,18 @@ def http_request_data(request):
     parts = [tup[0] for tup in parts_codes_tuples]
 
     # Some logic to simply determine which HTTP status code is expected, based
-    # on predetermined constant.
+    # on HTTP server design specifications.
     for code in STATUS_CODE_ORDER:
         if code in possible_expected_codes:
             expected_code = code
             break
 
+    # Assemble the HTTP request from its parts
     top_row = ' '.join(parts[:3])
     rest = ''.join(parts[3:])
     http_request = top_row + rest
 
+    # Return a nice package of data about the current test case
     return {
         'http_request': http_request,
         'expected_code': expected_code,
@@ -117,5 +116,8 @@ def http_request_data(request):
 def test_http_response(http_request_data):
     """Test client module against all possible HTTP request combinations."""
     from client import client
+
     response = client(http_request_data['http_request'])
-    assert int(response.split()[1]) == http_request_data['expected_code']
+    response_status_code = response.split()[1]
+
+    assert int(response_status_code) == http_request_data['expected_code']

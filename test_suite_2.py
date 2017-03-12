@@ -1,4 +1,7 @@
-"""A better test suite for server.py using pytest's parameterize decorator."""
+"""A better test suite for server.py using pytest's parameterize decorator.
+
+Test cases and test functions are decoupled.
+"""
 
 # Using pytest.mark.parametrize decorator
 import pytest
@@ -89,5 +92,8 @@ TEST_CASES = [
 def test_server(http_request, expected_code):
     """Test all cases in one parameterized function."""
     from client import client
+
     response = client(http_request)
-    assert int(response.split()[1]) == expected_code
+    response_status_code = response.split()[1]
+
+    assert int(response_status_code) == expected_code
