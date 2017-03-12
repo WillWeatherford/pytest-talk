@@ -91,48 +91,50 @@ def server():
 
 def http_server(conn, addr):
     """Take HTTP requests and return appropriate HTTP response."""
-    # with closing(conn):
-    request_parts = []
-    while True:
-        part = conn.recv(BUFFER_LENGTH)
-        request_parts.append(part)
-        if len(part) < BUFFER_LENGTH:
-            break
-    # Immediately decode all of incoming request into unicode.
-    # In future, may need to check Content-type of incoming request?
-    request = b''.join(request_parts).decode('utf-8')
-    print('Request received:\n{}'.format(request))
+    with closing(conn):
+        request_parts = []
+        while True:
+            part = conn.recv(BUFFER_LENGTH)
+            request_parts.append(part)
+            if len(part) < BUFFER_LENGTH:
+                break
+        # Immediately decode all of incoming request into unicode.
+        # In future, may need to check Content-type of incoming request?
+        request = b''.join(request_parts).decode('utf-8')
+        print('Request received:\n{}'.format(request))
 
-    try:
         try:
-            uri = parse_request(request)
-            body, content_type = resolve_uri(uri)
-        except ValueError as e:
-            err_code = e.args[0]
-            response_headers = response_error(err_code)
-            body = HTTP_CODES[err_code]
-        else:
-            # Here body might be a bytestring.
-            body_length = len(body)
-            response_headers = response_ok(content_type, body_length)
-    except Exception:
-        response_headers = response_error(500)
-        body = HTTP_CODES[500]
+            try:
+                uri = parse_request(request)
+                body, content_type = resolve_uri(uri)
+            except ValueError as e:
+                err_code = e.args[0]
+                response_headers = response_error(err_code)
+                body = HTTP_CODES[err_code]
+            else:
+                # Here body might be a bytestring.
+                body_length = len(body)
+                response_headers = response_ok(content_type, body_length)
+        except Exception:
+            response_headers = response_error(500)
+            body = HTTP_CODES[500]
 
-    # Re-encode into bytes on the way out.
-    response_headers = response_headers.encode('utf-8')
-    body = body.encode('utf-8')
+        # Re-encode into bytes on the way out.
+        response_headers = response_headers.encode('utf-8')
+        body = body.encode('utf-8')
 
-    response = b''.join([response_headers, body])
+        response = b''.join([response_headers, body])
 
-    conn.sendall(response)
-    conn.close()
-    time.sleep(0.01)
+        conn.sendall(response)
+        conn.close()
+        time.sleep(0.01)
 
 
 def parse_request(request):
-    """Parse client request."""
+    """Return uniform resource identifier after parsing HTTP request.
 
+    Raise ValueError with correct HTTP response code when appropriate.
+    """
     # Should be able to separate body from headers at double carriage return.
     try:
         headers, body = request.split(CRLF * 2)
