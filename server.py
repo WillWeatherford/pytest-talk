@@ -65,6 +65,7 @@ PATHS = {
 
 def server():
     """Start a server using a socket at server.ADDRINFO."""
+    print('\nStarting the server...')
     serv_sock = socket.socket(socket.AF_INET,
                               socket.SOCK_STREAM,
                               socket.IPPROTO_TCP)
@@ -72,8 +73,11 @@ def server():
     serv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     serv_sock.bind(ADDRINFO)
     serv_sock.listen(1)
+    print('Serving at {}:{}.'.format(*ADDRINFO))
+
     try:
         while True:
+            print('Waiting for client connection...')
             conn, addr = serv_sock.accept()
             http_server(conn, addr)
     except Exception as e:

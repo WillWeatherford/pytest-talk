@@ -82,7 +82,7 @@ STATUS_CODE_ORDER = [
 ]
 
 
-# Each 
+# We know the expected "reason" message for each HTTP status code.
 REASONS = {
     400: 'Bad Request',
     404: 'Not Found',
