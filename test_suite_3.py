@@ -20,7 +20,7 @@ METHODS = [
     ('GET', 200),
     ('POST', 405),
     ('DELETE', 405),
-    ('jslalsijhr;;', 405),
+    ('NOT_A_METHOD', 405),
 ]
 
 URIS = [
@@ -34,7 +34,7 @@ PROTOS = [
     ('HTTP/1.1' + CRLF, 200),
     ('HTTP/1.1', 400),
     ('HTTP/1.0'  + CRLF, 505),
-    ('vhdo%#@#4939'  + CRLF, 505),
+    ('FTP'  + CRLF, 505),
 ]
 
 HEADERS = [
@@ -72,9 +72,9 @@ TEST_CASES = itertools.product(
 # We should be and are testing to make sure this priority order is correct.
 STATUS_CODE_ORDER = [
     400,
-    404,
     405,
     505,
+    404,
     200,
 ]
 

@@ -72,9 +72,9 @@ TEST_CASES = itertools.product(
 # We should be and are testing to make sure this priority order is correct.
 STATUS_CODE_ORDER = [
     400,
-    404,
     405,
     505,
+    404,
     200,
 ]
 

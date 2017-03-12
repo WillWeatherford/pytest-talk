@@ -131,24 +131,35 @@ def parse_request(request):
     protocol = ''
     headers = ''
 
-    # I was able to simplify this into one try/except block.
-    # The key was to organize it by error type.
+    # Should be able to separate body from headers at double carriage return.
     try:
         headers, body = request.split(CRLF * 2)
-        headers = headers.split(CRLF)
-        try:
-            first_line = headers[0]
-        except IndexError:
-            raise ValueError(400)
-        method, uri, protocol = first_line.split()
-        headers = headers[1:]
-        for h in headers:
-            if h.startswith(HOST):
-                break
-        else:
-            raise ValueError(400)
     except ValueError:
         raise ValueError(400)
+
+    # Get list of all headers
+    headers = headers.split(CRLF)
+
+    # List of headers should not be empty.
+    try:
+        first_line = headers[0]
+    except IndexError:
+        raise ValueError(400)
+
+    # Should be able to cleanly split first line into 3 parts.
+    try:
+        method, uri, protocol = first_line.split(' ')
+    except ValueError:
+        raise ValueError(400)
+
+    # At least one of the headers should be the Host header.
+    headers = headers[1:]
+    for h in headers:
+        if h.startswith(HOST):
+            break
+    else:
+        raise ValueError(400)
+
     if method != GET:
         raise ValueError(405)
     if protocol != HTTP1_1:
@@ -169,18 +180,22 @@ def resolve_uri(uri):
 # References key 200 from HTTP_CODES reference dictionary.
 def response_ok(content_type, body_length):
     """Return 'HTTP/1.1 200 OK' for when connection ok."""
-    return CRLF.join([' '.join([HTTP1_1, HTTP_CODES[200]]),
-                     CONTENT_TYPE.format(content_type),
-                     CONTENT_LENGTH.format(body_length),
-                     CRLF])
+    return CRLF.join([
+        ' '.join([HTTP1_1, HTTP_CODES[200]]),
+        CONTENT_TYPE.format(content_type),
+        CONTENT_LENGTH.format(body_length),
+        CRLF,
+    ])
 
 
 # Response_error take an int as err_code, to reference HTTP_CODES dict.
 def response_error(err_code):
     """Return 'Internal Server Error' for when problem occurs."""
-    return CRLF.join([' '.join([HTTP1_1, HTTP_CODES[err_code]]),
-                     CONTENT_TYPE.format(TEXT_PLAIN),
-                     CRLF])
+    return CRLF.join([
+        ' '.join([HTTP1_1, HTTP_CODES[err_code]]),
+        CONTENT_TYPE.format(TEXT_PLAIN),
+        CRLF
+    ])
 
 
 if __name__ == '__main__':
