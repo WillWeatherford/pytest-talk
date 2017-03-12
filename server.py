@@ -153,10 +153,10 @@ def parse_request(request):
         raise ValueError(400)
 
     # Should be able to cleanly split first line into 3 parts.
-    # try:
-    method, uri, protocol = first_line.split(' ')
-    # except ValueError:
-    #     raise ValueError(400)
+    try:
+        method, uri, protocol = first_line.split(' ')
+    except ValueError:
+        raise ValueError(400)
 
     # if not all((method, uri, protocol)):
     #     raise ValueError(400)
