@@ -132,10 +132,6 @@ def http_server(conn, addr):
 
 def parse_request(request):
     """Parse client request."""
-    method = ''
-    uri = ''
-    protocol = ''
-    headers = ''
 
     # Should be able to separate body from headers at double carriage return.
     try:
