@@ -1,12 +1,16 @@
-"""More gooder way to test combinations of parts of test cases.
+"""More scalable way to to test many combinations of test cases.
 
-itertools.product will allow creation of every possible way all HTTP request
+`itertools.product` will allow creation of every possible way all HTTP request
 parts can be combined.
 
+`pytest.fixture` creates a re-usable object containing test case information.
+
+The `params` keyword argument to `pytest.fixture` allows the test runner to
+iterate over a given iterable of test cases.
 """
 
 import pytest
-from itertools import product
+import itertools
 
 
 CRLF = '\r\n'
@@ -52,7 +56,11 @@ BODIES = [
 ]
 
 
-TEST_CASES = product(
+# Create iterator of every possible combination of HTTP request parts.
+# This ensures that our HTTP server is robust enough to correctly parse a huge
+# variety of incorrectly formed HTTP requests.
+
+TEST_CASES = itertools.product(
     METHODS, URIS, PROTOS,
     HEADERS,
     EMPTY_LINES,
@@ -60,6 +68,11 @@ TEST_CASES = product(
 )
 
 
+# The design of our HTTP server specifies that HTTP error codes should be
+# returned with a particular priority order.
+# e.g. if a HTTP request is so bad that it could return a 400, 404 or 405, it
+# should return a 400.
+# We should be and are testing to make sure this priority order is correct.
 STATUS_CODE_ORDER = [
     400,
     404,
@@ -69,6 +82,7 @@ STATUS_CODE_ORDER = [
 ]
 
 
+# Each 
 REASONS = {
     400: 'Bad Request',
     404: 'Not Found',
@@ -80,7 +94,7 @@ REASONS = {
 
 @pytest.fixture(params=TEST_CASES)
 def http_request_data(request):
-    """Return a new HTTPRequest object with given combination of args.
+    """Return a dictionary of data pertaining to the current test case.
 
     This function uses the `request` fixture provided by pytest. `request`
     gives access to meta information about the tests being run.
@@ -111,7 +125,7 @@ def http_request_data(request):
     }
 
 
-def test_http_response_code(http_request_data):
+def test_http_response(http_request_data):
     """Test client module against all possible HTTP request combinations."""
     from client import client
     response = client(http_request_data['http_request'])
