@@ -27,12 +27,10 @@ URIS = [
     ('/', 200),
     ('/login', 200),
     ('/not-a-valid/path', 404),
-    ('/' + CRLF, 400),
 ]
 
 PROTOS = [
     ('HTTP/1.1' + CRLF, 200),
-    ('HTTP/1.1', 400),
     ('HTTP/1.0'  + CRLF, 505),
     ('FTP'  + CRLF, 505),
 ]
@@ -45,7 +43,6 @@ HEADERS = [
 
 EMPTY_LINES = [
     (CRLF, 200),
-    ('p40kdnad', 400),
 ]
 
 BODIES = [
@@ -114,7 +111,7 @@ def http_request_data(request):
 
 
 def test_http_response(http_request_data):
-    """Test client module against all possible HTTP request combinations."""
+    """Test that correct HTTP status code is returned by server."""
     from client import client
 
     response = client(http_request_data['http_request'])

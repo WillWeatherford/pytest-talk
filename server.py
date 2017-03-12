@@ -31,6 +31,7 @@ HTTP_CODES = {
     400: '400 Bad Request',
     404: '404 Not Found',
     405: '405 Method Not Allowed',
+    500: '500 Internal Server Error',
     505: '505 HTTP Version Not Supported',
 }
 
@@ -80,8 +81,8 @@ def server():
             print('Waiting for client connection...')
             conn, addr = serv_sock.accept()
             http_server(conn, addr)
-    except Exception as e:
-        print(e)
+    except KeyboardInterrupt:
+        pass
     finally:
         print('\nShutting down the server...\n')
         serv_sock.close()
@@ -101,17 +102,22 @@ def http_server(conn, addr):
     # In future, may need to check Content-type of incoming request?
     request = b''.join(request_parts).decode('utf-8')
     print('Request received:\n{}'.format(request))
-    try:
-        uri = parse_request(request)
-        # Here body might be a bytestring.
-        body, content_type = resolve_uri(uri)
-        body_length = len(body)
-        response_headers = response_ok(content_type, body_length)
 
-    except ValueError as e:
-        err_code = e.args[0]
-        response_headers = response_error(err_code)
-        body = HTTP_CODES[err_code]
+    try:
+        try:
+            uri = parse_request(request)
+            body, content_type = resolve_uri(uri)
+        except ValueError as e:
+            err_code = e.args[0]
+            response_headers = response_error(err_code)
+            body = HTTP_CODES[err_code]
+        else:
+            # Here body might be a bytestring.
+            body_length = len(body)
+            response_headers = response_ok(content_type, body_length)
+    except Exception:
+        response_headers = response_error(500)
+        body = HTTP_CODES[500]
 
     # Re-encode into bytes on the way out.
     response_headers = response_headers.encode('utf-8')
@@ -147,10 +153,13 @@ def parse_request(request):
         raise ValueError(400)
 
     # Should be able to cleanly split first line into 3 parts.
-    try:
-        method, uri, protocol = first_line.split(' ')
-    except ValueError:
-        raise ValueError(400)
+    # try:
+    method, uri, protocol = first_line.split(' ')
+    # except ValueError:
+    #     raise ValueError(400)
+
+    # if not all((method, uri, protocol)):
+    #     raise ValueError(400)
 
     # At least one of the headers should be the Host header.
     headers = headers[1:]
@@ -159,7 +168,6 @@ def parse_request(request):
             break
     else:
         raise ValueError(400)
-
     if method != GET:
         raise ValueError(405)
     if protocol != HTTP1_1:
